@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { supabase } from './lib/supabaseClient';
 
 export type Camisa = {
   id: string;
@@ -12,34 +13,37 @@ export type Camisa = {
   imagem: string;
   tag?: string;
   cores?: string;
+  estoque_p?: number;
+  estoque_m?: number;
+  estoque_g?: number;
+  estoque_gg?: number;
 };
-
-export const CAMISAS: Camisa[] = [
-  {
-    id: 'brasil-dark-jordan',
-    nome: 'Brasil Dark × Jordan',
-    descricao: 'Edição especial CBF × Jordan Brand. Tecido dryfit premium, estampa exclusiva azul e preto.',
-    preco: 18900,
-    precoFormatado: 'R$ 189,00',
-    imagem: '/camisa-brasil-dark.jpeg',
-    tag: 'Exclusiva',
-    cores: 'Preto / Azul / Amarelo',
-  },
-  {
-    id: 'brasil-amarela-nike',
-    nome: 'Brasil Amarela × Nike',
-    descricao: 'Camisa oficial CBF Nike. A clássica canarinho com gola verde, qualidade de jogo.',
-    preco: 16900,
-    precoFormatado: 'R$ 169,00',
-    imagem: '/camisa-brasil-amarela.jpeg',
-    tag: 'Mais Vendida',
-    cores: 'Amarelo / Verde / Azul',
-  },
-];
 
 export default function Home() {
   const router = useRouter();
   const [hovered, setHovered] = useState<string | null>(null);
+  const [camisas, setCamisas] = useState<Camisa[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from('camisas')
+      .select('*')
+      .eq('ativo', true)
+      .then(({ data, error }) => {
+        if (error) console.error('Erro ao buscar camisas:', error.message);
+        if (data) {
+          setCamisas(data.map(c => ({
+            ...c,
+            precoFormatado: new Intl.NumberFormat('pt-BR', {
+              style: 'currency',
+              currency: 'BRL',
+            }).format(c.preco / 100),
+          })));
+        }
+        setLoading(false);
+      });
+  }, []);
 
   const handleSelect = (camisa: Camisa) => {
     localStorage.setItem('fem_camisa', JSON.stringify(camisa));
@@ -133,7 +137,7 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* HERO — Logo grande no lugar do título */}
+      {/* HERO */}
       <section style={{
         position: 'relative',
         overflow: 'hidden',
@@ -144,23 +148,13 @@ export default function Home() {
         alignItems: 'center',
         textAlign: 'center',
       }}>
-        {/* Linhas verticais decorativas */}
         <div style={{ position: 'absolute', left: '12%', top: 0, bottom: 0, width: 1, background: 'linear-gradient(180deg, rgba(180,140,30,.25), transparent)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', right: '12%', top: 0, bottom: 0, width: 1, background: 'linear-gradient(180deg, rgba(180,140,30,.15), transparent)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '40%', left: '50%', transform: 'translate(-50%,-50%)', width: 700, height: 400, background: 'radial-gradient(ellipse, rgba(180,140,30,.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
-        {/* Glow */}
-        <div style={{
-          position: 'absolute', top: '40%', left: '50%',
-          transform: 'translate(-50%,-50%)',
-          width: 700, height: 400,
-          background: 'radial-gradient(ellipse, rgba(180,140,30,.08) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-
-        {/* Logo hero */}
         <div className="fade-up" style={{ animationDelay: '0s', position: 'relative', zIndex: 1, marginBottom: 36 }}>
           <Image
-            src="/logo.jpeg"
+            src="/logo-png.png"
             alt="FEM Imports"
             width={220}
             height={220}
@@ -170,28 +164,16 @@ export default function Home() {
           />
         </div>
 
-        {/* Eyebrow */}
         <div className="fade-up condensed" style={{ animationDelay: '0.1s', fontSize: '0.78rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#c9a84c', marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14, position: 'relative', zIndex: 1 }}>
           <div style={{ width: 30, height: 1, background: '#c9a84c' }} />
           Importadas · Qualidade Premium · Entrega Garantida
           <div style={{ width: 30, height: 1, background: '#c9a84c' }} />
         </div>
 
-        {/* Sub */}
-        <p className="fade-up body-font" style={{
-          animationDelay: '0.2s',
-          fontSize: '1rem',
-          color: 'rgba(240,234,214,.5)',
-          lineHeight: 1.8,
-          maxWidth: 460,
-          marginBottom: 40,
-          position: 'relative',
-          zIndex: 1,
-        }}>
-          O site mais brasileiro do mundo, direto de São Paulo! Pra você, que esta esperando a convocação do Ney e o Hexa! 🏆
+        <p className="fade-up body-font" style={{ animationDelay: '0.2s', fontSize: '1rem', color: 'rgba(240,234,214,.5)', lineHeight: 1.8, maxWidth: 460, marginBottom: 40, position: 'relative', zIndex: 1 }}>
+          O site mais brasileiro do mundo, direto de São Paulo! Pra você, que está esperando a convocação do Ney e o Hexa! 🏆
         </p>
 
-        {/* CTA */}
         <div className="fade-up" style={{ animationDelay: '0.3s', display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center', position: 'relative', zIndex: 1 }}>
           <button
             className="btn-gold"
@@ -205,15 +187,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="fade-up" style={{
-          animationDelay: '0.4s',
-          display: 'flex', gap: 48,
-          marginTop: 64,
-          paddingTop: 40,
-          borderTop: '1px solid rgba(180,140,30,.15)',
-          position: 'relative', zIndex: 1,
-        }}>
+        <div className="fade-up" style={{ animationDelay: '0.4s', display: 'flex', gap: 48, marginTop: 64, paddingTop: 40, borderTop: '1px solid rgba(180,140,30,.15)', position: 'relative', zIndex: 1 }}>
           {[{ num: '100+', label: 'Modelos' }, { num: '5★', label: 'Avaliação' }, { num: '24h', label: 'Suporte' }].map(s => (
             <div key={s.label}>
               <div style={{ fontSize: '2rem', lineHeight: 1 }} className="gold-text">{s.num}</div>
@@ -233,86 +207,123 @@ export default function Home() {
           <div style={{ width: 50, height: 2, background: 'linear-gradient(90deg, #c9a84c, transparent)' }} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 28 }}>
-          {CAMISAS.map((camisa, idx) => (
-            <div
-              key={camisa.id}
-              className="card shimmer-card fade-up"
-              style={{
-                animationDelay: `${idx * 0.12}s`,
-                opacity: 0,
-                background: 'linear-gradient(160deg, #101010, #0d0d08)',
-                border: hovered === camisa.id ? '1px solid rgba(180,140,30,.55)' : '1px solid rgba(180,140,30,.18)',
-                borderRadius: 4,
-                overflow: 'hidden',
-                cursor: 'pointer',
-                position: 'relative',
-                boxShadow: hovered === camisa.id ? '0 24px 64px rgba(0,0,0,.7)' : '0 4px 24px rgba(0,0,0,.4)',
-              }}
-              onMouseEnter={() => setHovered(camisa.id)}
-              onMouseLeave={() => setHovered(null)}
-              onClick={() => handleSelect(camisa)}
-            >
-              {camisa.tag && (
-                <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>
-                  <span className="tag">{camisa.tag}</span>
-                </div>
-              )}
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+            <p className="body-font" style={{ color: 'rgba(240,234,214,.3)', letterSpacing: '0.1em' }}>Carregando coleção...</p>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 28 }}>
+            {camisas.map((camisa, idx) => {
+              const temEstoque = (
+                (camisa.estoque_p ?? 0) +
+                (camisa.estoque_m ?? 0) +
+                (camisa.estoque_g ?? 0) +
+                (camisa.estoque_gg ?? 0)
+              ) > 0;
 
-              <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', overflow: 'hidden', background: '#0a0a0a' }}>
-                <Image
-                  src={camisa.imagem}
-                  alt={camisa.nome}
-                  fill
-                  loading={idx === 0 ? 'eager' : 'lazy'}
-                  priority={idx === 0}
+              return (
+                <div
+                  key={camisa.id}
+                  className="card shimmer-card fade-up"
                   style={{
-                    objectFit: 'cover',
-                    transition: 'transform 0.5s ease',
-                    transform: hovered === camisa.id ? 'scale(1.06)' : 'scale(1)',
+                    animationDelay: `${idx * 0.12}s`,
+                    background: 'linear-gradient(160deg, #101010, #0d0d08)',
+                    border: hovered === camisa.id ? '1px solid rgba(180,140,30,.55)' : '1px solid rgba(180,140,30,.18)',
+                    borderRadius: 4,
+                    overflow: 'hidden',
+                    cursor: temEstoque ? 'pointer' : 'default',
+                    position: 'relative',
+                    boxShadow: hovered === camisa.id ? '0 24px 64px rgba(0,0,0,.7)' : '0 4px 24px rgba(0,0,0,.4)',
+                    opacity: temEstoque ? 1 : 0.5,  // ← só uma vez, como ternário
                   }}
-                />
-                <div style={{
-                  position: 'absolute', bottom: 0, left: 0, right: 0, height: '35%',
-                  background: 'linear-gradient(transparent, rgba(10,10,8,.96))',
-                  pointerEvents: 'none',
-                }} />
-              </div>
-
-              <div style={{ padding: '24px 28px 28px' }}>
-                <h3 style={{ fontSize: '1.6rem', letterSpacing: '0.03em', marginBottom: 4, lineHeight: 1 }}>{camisa.nome}</h3>
-                {camisa.cores && (
-                  <div className="condensed" style={{ fontSize: '0.7rem', letterSpacing: '0.18em', color: '#c9a84c', textTransform: 'uppercase', marginBottom: 10 }}>{camisa.cores}</div>
-                )}
-                <p className="body-font" style={{ fontSize: '0.84rem', color: 'rgba(240,234,214,.42)', lineHeight: 1.7, marginBottom: 20 }}>{camisa.descricao}</p>
-                <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(180,140,30,.3), transparent)', marginBottom: 20 }} />
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-                  <div>
-                    <div className="condensed" style={{ fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(240,234,214,.28)', marginBottom: 2 }}>Preço</div>
-                    <div style={{ fontSize: '1.8rem', lineHeight: 1 }} className="gold-text">{camisa.precoFormatado}</div>
-                  </div>
-                  <button
-                    className="btn-gold"
-                    style={{ padding: '12px 28px', borderRadius: 3, fontSize: '0.95rem', flexShrink: 0 }}
-                    onClick={e => { e.stopPropagation(); handleSelect(camisa); }}
+                  onMouseEnter={() => temEstoque && setHovered(camisa.id)}
+                  onMouseLeave={() => setHovered(null)}
+                  onClick={() => temEstoque && handleSelect(camisa)}
                   >
-                    COMPRAR
-                  </button>
+                  {camisa.tag && (
+                    <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>
+                      <span className="tag">{camisa.tag}</span>
+                    </div>
+                  )}
+
+                  {!temEstoque && (
+                    <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 2 }}>
+                      <span className="tag" style={{ borderColor: 'rgba(220,38,38,.4)', color: 'rgba(220,38,38,.7)', background: 'rgba(220,38,38,.1)' }}>Esgotada</span>
+                    </div>
+                  )}
+
+                  <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', overflow: 'hidden', background: '#0a0a0a' }}>
+                    <Image
+                      src={camisa.imagem}
+                      alt={camisa.nome}
+                      fill
+                      loading={idx === 0 ? 'eager' : 'lazy'}
+                      priority={idx === 0}
+                      style={{
+                        objectFit: 'cover',
+                        transition: 'transform 0.5s ease',
+                        transform: hovered === camisa.id ? 'scale(1.06)' : 'scale(1)',
+                      }}
+                    />
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '35%', background: 'linear-gradient(transparent, rgba(10,10,8,.96))', pointerEvents: 'none' }} />
+                  </div>
+
+                  <div style={{ padding: '24px 28px 28px' }}>
+                    <h3 style={{ fontSize: '1.6rem', letterSpacing: '0.03em', marginBottom: 4, lineHeight: 1 }}>{camisa.nome}</h3>
+                    {camisa.cores && (
+                      <div className="condensed" style={{ fontSize: '0.7rem', letterSpacing: '0.18em', color: '#c9a84c', textTransform: 'uppercase', marginBottom: 10 }}>{camisa.cores}</div>
+                    )}
+                    <p className="body-font" style={{ fontSize: '0.84rem', color: 'rgba(240,234,214,.42)', lineHeight: 1.7, marginBottom: 16 }}>{camisa.descricao}</p>
+
+                    {/* Preview dos tamanhos disponíveis */}
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
+                      {(['p', 'm', 'g', 'gg'] as const).map(tam => {
+                        const estoque = (camisa[`estoque_${tam}` as keyof Camisa] as number) ?? 0;
+                        return (
+                          <span
+                            key={tam}
+                            className="condensed"
+                            style={{
+                              padding: '3px 8px',
+                              border: `1px solid ${estoque > 0 ? 'rgba(180,140,30,.35)' : 'rgba(180,140,30,.1)'}`,
+                              borderRadius: 2,
+                              fontSize: '0.65rem',
+                              letterSpacing: '0.1em',
+                              color: estoque > 0 ? 'rgba(240,234,214,.5)' : 'rgba(240,234,214,.15)',
+                              textDecoration: estoque === 0 ? 'line-through' : 'none',
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            {tam}
+                          </span>
+                        );
+                      })}
+                    </div>
+
+                    <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(180,140,30,.3), transparent)', marginBottom: 20 }} />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                      <div>
+                        <div className="condensed" style={{ fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(240,234,214,.28)', marginBottom: 2 }}>Preço</div>
+                        <div style={{ fontSize: '1.8rem', lineHeight: 1 }} className="gold-text">{camisa.precoFormatado}</div>
+                      </div>
+                      <button
+                        className="btn-gold"
+                        style={{ padding: '12px 28px', borderRadius: 3, fontSize: '0.95rem', flexShrink: 0, opacity: temEstoque ? 1 : 0.4, cursor: temEstoque ? 'pointer' : 'not-allowed' }}
+                        onClick={e => { e.stopPropagation(); if (temEstoque) handleSelect(camisa); }}
+                      >
+                        COMPRAR
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* BANNER */}
-      <section style={{
-        borderTop: '1px solid rgba(180,140,30,.12)',
-        borderBottom: '1px solid rgba(180,140,30,.12)',
-        background: 'linear-gradient(135deg, #0a0900, #0d0d0d, #0a0900)',
-        padding: '70px 40px',
-        textAlign: 'center',
-      }}>
+      <section style={{ borderTop: '1px solid rgba(180,140,30,.12)', borderBottom: '1px solid rgba(180,140,30,.12)', background: 'linear-gradient(135deg, #0a0900, #0d0d0d, #0a0900)', padding: '70px 40px', textAlign: 'center' }}>
         <h2 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', marginBottom: 14 }}>
           QUALIDADE QUE VOCÊ <span className="gold-text">SENTE</span>
         </h2>
@@ -329,46 +340,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER CENTRALIZADO */}
-      <footer style={{ 
-        padding: '60px 40px', 
-        display: 'flex', 
-        flexDirection: 'column', // Empilha o logo e o texto
-        alignItems: 'center',    // Centraliza horizontalmente
-        justifyContent: 'center', 
-        gap: 20, 
-        borderTop: '1px solid rgba(180,140,30,.1)' 
-      }}>
+      {/* FOOTER */}
+      <footer style={{ padding: '60px 40px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20, borderTop: '1px solid rgba(180,140,30,.1)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <Image
-            src="/logo.jpeg"
-            alt="FEM Imports"
-            width={36}
-            height={36}
-            style={{ 
-              borderRadius: 4, 
-              objectFit: 'contain', 
-              width: 'auto',  // Correção para o erro de aspect ratio
-              height: 'auto', // Correção para o erro de aspect ratio
-              opacity: 0.5 
-            }}
-          />
-          <span className="condensed" style={{ 
-            fontSize: '0.75rem', 
-            letterSpacing: '0.25em', 
-            textTransform: 'uppercase', 
-            color: 'rgba(240,234,214,.3)',
-            textAlign: 'center' 
-          }}>
+          <Image src="/logo.jpeg" alt="FEM Imports" width={36} height={36} style={{ borderRadius: 4, objectFit: 'contain', width: 'auto', height: 'auto', opacity: 0.5 }} />
+          <span className="condensed" style={{ fontSize: '0.75rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(240,234,214,.3)', textAlign: 'center' }}>
             © 2026 FEM Imports · Todos os direitos reservados
           </span>
-          <div className="condensed" style={{ 
-            fontSize: '0.6rem', 
-            letterSpacing: '0.15em', 
-            color: 'rgba(240,234,214,.15)', 
-            textTransform: 'uppercase',
-            marginTop: 5
-          }}>
+          <div className="condensed" style={{ fontSize: '0.6rem', letterSpacing: '0.15em', color: 'rgba(240,234,214,.15)', textTransform: 'uppercase', marginTop: 5 }}>
             Qualidade Premium · Tailandesa 1:1
           </div>
         </div>
