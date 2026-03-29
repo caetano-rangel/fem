@@ -99,6 +99,9 @@ export default function Home() {
           animation: shimmer 6s ease-in-out infinite;
           pointer-events: none;
         }
+        @media (max-width: 480px) {
+          #camisas { padding: 40px 16px 60px !important; }
+        }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #080808; }
         ::-webkit-scrollbar-thumb { background: #b8a030; border-radius: 3px; }
@@ -198,7 +201,7 @@ export default function Home() {
       </section>
 
       {/* COLEÇÃO */}
-      <section id="camisas" style={{ padding: '80px 40px 100px', maxWidth: 1100, margin: '0 auto' }}>
+      <section id="camisas" style={{ padding: '60px 20px 80px', maxWidth: 1100, margin: '0 auto' }}>
         <div style={{ marginBottom: 52 }}>
           <div className="condensed" style={{ fontSize: '0.72rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#c9a84c', marginBottom: 14 }}>✦ Coleção Atual</div>
           <h2 style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', lineHeight: 1, marginBottom: 16 }}>
@@ -212,7 +215,11 @@ export default function Home() {
             <p className="body-font" style={{ color: 'rgba(240,234,214,.3)', letterSpacing: '0.1em' }}>Carregando coleção...</p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: 28 }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 1fr))',
+            gap: 20,
+          }}>
             {camisas.map((camisa, idx) => {
               const temEstoque = (
                 (camisa.estoque_p ?? 0) +
@@ -234,12 +241,12 @@ export default function Home() {
                     cursor: temEstoque ? 'pointer' : 'default',
                     position: 'relative',
                     boxShadow: hovered === camisa.id ? '0 24px 64px rgba(0,0,0,.7)' : '0 4px 24px rgba(0,0,0,.4)',
-                    opacity: temEstoque ? 1 : 0.5,  // ← só uma vez, como ternário
+                    opacity: temEstoque ? 1 : 0.5,
                   }}
                   onMouseEnter={() => temEstoque && setHovered(camisa.id)}
                   onMouseLeave={() => setHovered(null)}
                   onClick={() => temEstoque && handleSelect(camisa)}
-                  >
+                >
                   {camisa.tag && (
                     <div style={{ position: 'absolute', top: 16, left: 16, zIndex: 2 }}>
                       <span className="tag">{camisa.tag}</span>
@@ -268,15 +275,15 @@ export default function Home() {
                     <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '35%', background: 'linear-gradient(transparent, rgba(10,10,8,.96))', pointerEvents: 'none' }} />
                   </div>
 
-                  <div style={{ padding: '24px 28px 28px' }}>
-                    <h3 style={{ fontSize: '1.6rem', letterSpacing: '0.03em', marginBottom: 4, lineHeight: 1 }}>{camisa.nome}</h3>
+                  <div style={{ padding: '20px 20px 24px' }}>
+                    <h3 style={{ fontSize: 'clamp(1.3rem, 4vw, 1.6rem)', letterSpacing: '0.03em', marginBottom: 4, lineHeight: 1 }}>{camisa.nome}</h3>
                     {camisa.cores && (
                       <div className="condensed" style={{ fontSize: '0.7rem', letterSpacing: '0.18em', color: '#c9a84c', textTransform: 'uppercase', marginBottom: 10 }}>{camisa.cores}</div>
                     )}
                     <p className="body-font" style={{ fontSize: '0.84rem', color: 'rgba(240,234,214,.42)', lineHeight: 1.7, marginBottom: 16 }}>{camisa.descricao}</p>
 
-                    {/* Preview dos tamanhos disponíveis */}
-                    <div style={{ display: 'flex', gap: 6, marginBottom: 20 }}>
+                    {/* Preview tamanhos */}
+                    <div style={{ display: 'flex', gap: 6, marginBottom: 20, flexWrap: 'wrap' }}>
                       {(['p', 'm', 'g', 'gg'] as const).map(tam => {
                         const estoque = (camisa[`estoque_${tam}` as keyof Camisa] as number) ?? 0;
                         return (
@@ -301,14 +308,15 @@ export default function Home() {
                     </div>
 
                     <div style={{ height: 1, background: 'linear-gradient(90deg, rgba(180,140,30,.3), transparent)', marginBottom: 20 }} />
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                       <div>
                         <div className="condensed" style={{ fontSize: '0.6rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(240,234,214,.28)', marginBottom: 2 }}>Preço</div>
-                        <div style={{ fontSize: '1.8rem', lineHeight: 1 }} className="gold-text">{camisa.precoFormatado}</div>
+                        <div style={{ fontSize: 'clamp(1.4rem, 5vw, 1.8rem)', lineHeight: 1 }} className="gold-text">{camisa.precoFormatado}</div>
                       </div>
                       <button
                         className="btn-gold"
-                        style={{ padding: '12px 28px', borderRadius: 3, fontSize: '0.95rem', flexShrink: 0, opacity: temEstoque ? 1 : 0.4, cursor: temEstoque ? 'pointer' : 'not-allowed' }}
+                        style={{ padding: '12px 24px', borderRadius: 3, fontSize: '0.9rem', flexShrink: 0, opacity: temEstoque ? 1 : 0.4, cursor: temEstoque ? 'pointer' : 'not-allowed' }}
                         onClick={e => { e.stopPropagation(); if (temEstoque) handleSelect(camisa); }}
                       >
                         COMPRAR
